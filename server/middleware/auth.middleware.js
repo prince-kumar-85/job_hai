@@ -1,6 +1,6 @@
 const jwt = require("jsonwebtoken");
 
-exports.protect = (roles) => {
+exports.protect = (...roles) => {
   return (req, res, next) => {
     try {
       const header = req.headers.authorization;
@@ -10,8 +10,9 @@ exports.protect = (roles) => {
       const token = header.split(" ")[1];
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-      if (!roles.includes(decoded.role))
+      if (roles.length && !roles.includes(decoded.role)) {
         return res.status(403).json({ message: "Access denied" });
+      }
 
       req.user = decoded;
       next();

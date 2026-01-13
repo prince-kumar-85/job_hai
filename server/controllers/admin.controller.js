@@ -8,14 +8,17 @@ exports.register = async (req, res) => {
   const { name, email, password } = req.body;
 
   const hashed = await bcrypt.hash(password, 10);
-  await User.create({
+  const admin = await User.create({
     name,
     email,
     password: hashed,
-    role: "admin"
+    role: "admin",
   });
 
-  res.status(201).json({ message: "Admin registered" });
+  res.status(201).json({
+    message: "Admin registered",
+    user: admin,
+  });
 };
 
 /* LOGIN ADMIN */
@@ -34,24 +37,13 @@ exports.login = async (req, res) => {
     { expiresIn: "1d" }
   );
 
-  res.json({ token });
-};
-
-/* ADMIN DASHBOARD */
-exports.dashboard = async (req, res) => {
-  const users = await User.countDocuments({ role: "user" });
-  const requests = await Request.countDocuments();
-  res.json({ users, requests });
-};
-
-/* VIEW ALL REQUESTS */
-exports.getRequests = async (req, res) => {
-  const requests = await Request.find().populate("userId", "name email");
-  res.json(requests);
-};
-
-/* UPDATE REQUEST STATUS */
-exports.updateStatus = async (req, res) => {
-  await Request.findByIdAndUpdate(req.params.id, req.body);
-  res.json({ message: "Status updated" });
+  res.json({
+    token,
+    user: {
+      id: admin._id,
+      name: admin.name,
+      email: admin.email,
+      role: admin.role,
+    },
+  });
 };

@@ -1,20 +1,32 @@
 import React, { useState } from "react";
-import { Box, Button, TextField, Typography, MenuItem } from "@mui/material";
+import { Box, Button, TextField, Typography } from "@mui/material";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import { loginUser, registerUser } from "../services/authService";
 
 const AuthPage = () => {
   const [isRegister, setIsRegister] = useState(false);
-  const [role, setRole] = useState("user");
-  const [name, setName] = useState("");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    password: "",
+  });
 
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = () => {
-    login({ name, role });
+  const handleSubmit = async () => {
+    try {
+      const data = isRegister
+        ? await registerUser(form)
+        : await loginUser(form);
 
-    navigate(role === "admin" ? "/admin" : "/user");
+      login(data);
+
+      navigate(data.user.role === "ADMIN" ? "/admin" : "/user");
+    } catch (err) {
+      alert(err.response?.data?.message || "Something went wrong");
+    }
   };
 
   return (
@@ -28,24 +40,24 @@ const AuthPage = () => {
           fullWidth
           label="Name"
           margin="normal"
-          onChange={(e) => setName(e.target.value)}
+          onChange={(e) => setForm({ ...form, name: e.target.value })}
         />
       )}
 
-      <TextField fullWidth label="Email" margin="normal" />
-      <TextField fullWidth label="Password" type="password" margin="normal" />
+      <TextField
+        fullWidth
+        label="Email"
+        margin="normal"
+        onChange={(e) => setForm({ ...form, email: e.target.value })}
+      />
 
       <TextField
-        select
         fullWidth
-        label="Role"
+        label="Password"
+        type="password"
         margin="normal"
-        value={role}
-        onChange={(e) => setRole(e.target.value)}
-      >
-        <MenuItem value="user">User</MenuItem>
-        <MenuItem value="admin">Admin</MenuItem>
-      </TextField>
+        onChange={(e) => setForm({ ...form, password: e.target.value })}
+      />
 
       <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={handleSubmit}>
         {isRegister ? "Register" : "Login"}

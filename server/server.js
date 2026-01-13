@@ -12,8 +12,9 @@ app.use(express.json());
 mongoose
   .connect(process.env.MONGO_URI)
   .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.error(err));
+  .catch(console.error);
 
+app.use("/api/products", require("./routes/product.routes"));
 app.use("/api/user", require("./routes/user.routes"));
 app.use("/api/admin", require("./routes/admin.routes"));
 

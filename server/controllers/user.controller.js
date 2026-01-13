@@ -11,9 +11,12 @@ exports.register = async (req, res) => {
   if (exists) return res.status(400).json({ message: "User exists" });
 
   const hashed = await bcrypt.hash(password, 10);
-  await User.create({ name, email, password: hashed });
+  const user = await User.create({ name, email, password: hashed });
 
-  res.status(201).json({ message: "User registered" });
+  res.status(201).json({
+    message: "User registered",
+    user,
+  });
 };
 
 /* LOGIN USER */
@@ -32,27 +35,13 @@ exports.login = async (req, res) => {
     { expiresIn: "1d" }
   );
 
-  res.json({ token });
-};
-
-/* USER DASHBOARD */
-exports.dashboard = async (req, res) => {
-  const requests = await Request.find({ userId: req.user.id });
   res.json({
-    totalRequests: requests.length,
-    requests
+    token,
+    user: {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+    },
   });
-};
-
-/* CREATE REQUEST */
-exports.createRequest = async (req, res) => {
-  const { serviceType, description } = req.body;
-
-  await Request.create({
-    userId: req.user.id,
-    serviceType,
-    description
-  });
-
-  res.status(201).json({ message: "Request submitted" });
 };
