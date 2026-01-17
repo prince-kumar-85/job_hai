@@ -8,15 +8,12 @@ exports.register = async (req, res) => {
   const { name, email, password } = req.body;
 
   const exists = await User.findOne({ email });
-  if (exists) return res.status(400).json({ message: "User exists" });
+  if (exists) return res.status(400).json({ message: "User already exists" });
 
   const hashed = await bcrypt.hash(password, 10);
   const user = await User.create({ name, email, password: hashed });
 
-  res.status(201).json({
-    message: "User registered",
-    user,
-  });
+  res.status(201).json({ message: "User registered", user });
 };
 
 /* LOGIN USER */
@@ -35,13 +32,26 @@ exports.login = async (req, res) => {
     { expiresIn: "1d" }
   );
 
+  res.json({ token });
+};
+
+/* USER DASHBOARD */
+exports.dashboard = async (req, res) => {
   res.json({
-    token,
-    user: {
-      id: user._id,
-      name: user.name,
-      email: user.email,
-      role: user.role,
-    },
+    message: "User Dashboard",
+    user: req.user,
   });
+};
+
+/* CREATE SERVICE REQUEST */
+exports.createRequest = async (req, res) => {
+  const { serviceType, description } = req.body;
+
+  const request = await Request.create({
+    userId: req.user.id,
+    serviceType,
+    description,
+  });
+
+  res.status(201).json(request);
 };
