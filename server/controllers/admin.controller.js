@@ -37,13 +37,32 @@ exports.login = async (req, res) => {
     { expiresIn: "1d" }
   );
 
+  res.json({ token });
+};
+
+/* ADMIN DASHBOARD */
+exports.dashboard = async (req, res) => {
   res.json({
-    token,
-    user: {
-      id: admin._id,
-      name: admin.name,
-      email: admin.email,
-      role: admin.role,
-    },
+    message: "Admin Dashboard",
+    admin: req.user,
   });
+};
+
+/* GET ALL REQUESTS */
+exports.getRequests = async (req, res) => {
+  const requests = await Request.find().populate("userId", "name email");
+  res.json(requests);
+};
+
+/* UPDATE REQUEST STATUS */
+exports.updateStatus = async (req, res) => {
+  const { status } = req.body;
+
+  const request = await Request.findByIdAndUpdate(
+    req.params.id,
+    { status },
+    { new: true }
+  );
+
+  res.json(request);
 };
