@@ -22,7 +22,7 @@ const AuthPage = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async () => {
+const handleSubmit = async () => {
   try {
     let data;
 
@@ -38,16 +38,18 @@ const AuthPage = () => {
           : await loginUser(form);
     }
 
-    // Save auth data
+    if (!data?.token || !data?.user) {
+      throw new Error("Invalid server response");
+    }
+
     login(data.token, data.user);
 
-    // Redirect based on role
-    if (data.user.role === "admin") navigate("/admin");
-    else navigate("/user");
+    navigate(data.user.role === "admin" ? "/admin" : "/user");
   } catch (err) {
-    alert(err.response?.data?.message || "Something went wrong");
+    alert(err.response?.data?.message || err.message || "Something went wrong");
   }
 };
+
 
 
   return (

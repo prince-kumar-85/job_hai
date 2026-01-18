@@ -3,24 +3,38 @@ const Request = require("../models/Request");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-/* REGISTER ADMIN */
+/* ================= REGISTER ADMIN ================= */
 exports.register = async (req, res) => {
-  const { name, email, password } = req.body;
+  try {
+    const { name, email, password } = req.body;
 
-  const hashed = await bcrypt.hash(password, 10);
-  const admin = await User.create({
-    name,
-    email,
-    password: hashed,
-    role: "admin",
-  });
+    const exists = await User.findOne({ email });
+    if (exists) {
+      return res.status(400).json({ message: "Admin already exists" });
+    }
 
-  res.status(201).json({
-    message: "Admin registered",
-    user: admin,
-  });
+    const hashed = await bcrypt.hash(password, 10);
+
+    const admin = await User.create({
+      name,
+      email,
+      password: hashed,
+      role: "admin",
+    });
+
+    res.status(201).json({
+      message: "Admin registered successfully",
+      user: {
+        id: admin._id,
+        name: admin.name,
+        email: admin.email,
+        role: admin.role,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
-
 /* LOGIN ADMIN */
 exports.login = async (req, res) => {
   const { email, password } = req.body;
@@ -37,10 +51,18 @@ exports.login = async (req, res) => {
     { expiresIn: "1d" }
   );
 
-  res.json({ token });
+  res.json({
+    token,
+    user: {
+      id: admin._id,
+      name: admin.name,
+      email: admin.email,
+      role: admin.role,
+    },
+  });
 };
 
-/* ADMIN DASHBOARD */
+/* ================= ADMIN DASHBOARD ================= */
 exports.dashboard = async (req, res) => {
   res.json({
     message: "Admin Dashboard",
@@ -48,13 +70,13 @@ exports.dashboard = async (req, res) => {
   });
 };
 
-/* GET ALL REQUESTS */
+/* ================= GET ALL REQUESTS ================= */
 exports.getRequests = async (req, res) => {
   const requests = await Request.find().populate("userId", "name email");
   res.json(requests);
 };
 
-/* UPDATE REQUEST STATUS */
+/* ================= UPDATE REQUEST STATUS ================= */
 exports.updateStatus = async (req, res) => {
   const { status } = req.body;
 
