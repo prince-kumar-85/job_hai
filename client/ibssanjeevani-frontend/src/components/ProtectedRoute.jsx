@@ -9,7 +9,7 @@ export default function ProtectedRoute({ children, role }) {
     return <Navigate to="/auth" />;
   }
 
-  // Role-based protection
+  // Role-based access
   if (role && user.role !== role) {
     return <Navigate to="/" />;
   }

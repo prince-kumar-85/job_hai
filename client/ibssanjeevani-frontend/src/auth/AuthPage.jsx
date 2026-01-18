@@ -1,11 +1,18 @@
 import React, { useState } from "react";
 import { Box, Button, TextField, Typography } from "@mui/material";
-import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
-import { loginUser, registerUser } from "../services/authService";
+import { useAuth } from "../context/AuthContext";
+import {
+  loginUser,
+  registerUser,
+  loginAdmin,
+  registerAdmin,
+} from "../services/authService";
 
 const AuthPage = () => {
-  const [isRegister, setIsRegister] = useState(false);
+  const [mode, setMode] = useState("login"); // login | register
+  const [role, setRole] = useState("user"); // user | admin
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -16,26 +23,81 @@ const AuthPage = () => {
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
-    try {
-      const data = isRegister
-        ? await registerUser(form)
-        : await loginUser(form);
+  try {
+    let data;
 
-      login(data);
-
-      navigate(data.user.role === "ADMIN" ? "/admin" : "/user");
-    } catch (err) {
-      alert(err.response?.data?.message || "Something went wrong");
+    if (role === "admin") {
+      data =
+        mode === "register"
+          ? await registerAdmin(form)
+          : await loginAdmin(form);
+    } else {
+      data =
+        mode === "register"
+          ? await registerUser(form)
+          : await loginUser(form);
     }
-  };
+
+    // Save auth data
+    login(data.token, data.user);
+
+    // Redirect based on role
+    if (data.user.role === "admin") navigate("/admin");
+    else navigate("/user");
+  } catch (err) {
+    alert(err.response?.data?.message || "Something went wrong");
+  }
+};
+
 
   return (
-    <Box sx={{ width: 350, mx: "auto", mt: 8 }}>
-      <Typography variant="h5" align="center">
-        {isRegister ? "Register" : "Login"}
+    <Box sx={{ width: 360, mx: "auto", mt: 8 }}>
+      <Typography variant="h5" align="center" gutterBottom>
+        {mode === "login" ? "Login" : "Register"} as {role.toUpperCase()}
       </Typography>
 
-      {isRegister && (
+      {/* MODE BUTTONS */}
+      <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+        <Button
+          fullWidth
+          variant={mode === "login" ? "contained" : "outlined"}
+          onClick={() => setMode("login")}
+        >
+          Login
+        </Button>
+
+        <Button
+          fullWidth
+          variant={mode === "register" ? "contained" : "outlined"}
+          onClick={() => setMode("register")}
+        >
+          Register
+        </Button>
+      </Box>
+
+      {/* ROLE BUTTONS */}
+      <Box sx={{ display: "flex", gap: 1, mb: 2 }}>
+        <Button
+          fullWidth
+          color="secondary"
+          variant={role === "user" ? "contained" : "outlined"}
+          onClick={() => setRole("user")}
+        >
+          User
+        </Button>
+
+        <Button
+          fullWidth
+          color="secondary"
+          variant={role === "admin" ? "contained" : "outlined"}
+          onClick={() => setRole("admin")}
+        >
+          Admin
+        </Button>
+      </Box>
+
+      {/* FORM */}
+      {mode === "register" && (
         <TextField
           fullWidth
           label="Name"
@@ -59,12 +121,13 @@ const AuthPage = () => {
         onChange={(e) => setForm({ ...form, password: e.target.value })}
       />
 
-      <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={handleSubmit}>
-        {isRegister ? "Register" : "Login"}
-      </Button>
-
-      <Button fullWidth sx={{ mt: 1 }} onClick={() => setIsRegister(!isRegister)}>
-        {isRegister ? "Already have an account? Login" : "New user? Register"}
+      <Button
+        fullWidth
+        variant="contained"
+        sx={{ mt: 2 }}
+        onClick={handleSubmit}
+      >
+        {mode === "login" ? "Login" : "Register"} as {role.toUpperCase()}
       </Button>
     </Box>
   );

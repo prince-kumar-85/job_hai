@@ -1,87 +1,55 @@
 import * as React from "react";
 import AppBar from "@mui/material/AppBar";
-import Box from "@mui/material/Box";
 import Toolbar from "@mui/material/Toolbar";
-import IconButton from "@mui/material/IconButton";
 import Typography from "@mui/material/Typography";
-import Menu from "@mui/material/Menu";
-import Container from "@mui/material/Container";
+import IconButton from "@mui/material/IconButton";
 import Avatar from "@mui/material/Avatar";
-import Button from "@mui/material/Button";
-import Tooltip from "@mui/material/Tooltip";
+import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
+import Container from "@mui/material/Container";
+import Box from "@mui/material/Box";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import logo from "../assets/logo.png";
 
-function ResponsiveAppBar() {
+export default function ResponsiveAppBar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
-
-  const pages =
-    user?.role === "admin"
-      ? ["Admin Dashboard", "Manage Users", "Reports"]
-      : ["User Dashboard", "Appointments", "Profile"];
-
-  const [anchorElUser, setAnchorElUser] = React.useState(null);
-
-  const handleLogout = () => {
-    logout();
-    navigate("/auth");
-  };
-
-  const handleDashboard = () => {
-    navigate(user.role === "admin" ? "/admin" : "/user");
-  };
+  const [anchor, setAnchor] = React.useState(null);
 
   return (
     <AppBar position="static">
-      <Container maxWidth="xl">
+      <Container>
         <Toolbar>
+          <Typography sx={{ flexGrow: 1 }} variant="h6">
+            IBSS SANJEEVANI
+          </Typography>
 
-          {/* LOGO */}
-          <Box sx={{ display: "flex", alignItems: "center", flexGrow: 1 }}>
-            <img src={logo} alt="logo" style={{ height: 40, marginRight: 10 }} />
-            <Typography variant="h6">IBSS SANJEEVANI</Typography>
-          </Box>
+          <IconButton onClick={(e) => setAnchor(e.currentTarget)}>
+            <Avatar>{user?.name?.[0]}</Avatar>
+          </IconButton>
 
-          {/* PAGES */}
-          <Box>
-            {pages.map((page) => (
-              <Button key={page} sx={{ color: "white" }}>
-                {page}
-              </Button>
-            ))}
-          </Box>
-
-          {/* PROFILE MENU */}
-          <Box sx={{ ml: 2 }}>
-            <Tooltip title="Account">
-              <IconButton onClick={(e) => setAnchorElUser(e.currentTarget)}>
-                <Avatar>{user?.name?.charAt(0)}</Avatar>
-              </IconButton>
-            </Tooltip>
-
-            <Menu
-              anchorEl={anchorElUser}
-              open={Boolean(anchorElUser)}
-              onClose={() => setAnchorElUser(null)}
+          <Menu
+            anchorEl={anchor}
+            open={Boolean(anchor)}
+            onClose={() => setAnchor(null)}
+          >
+            <MenuItem onClick={() => navigate("/profile")}>Profile</MenuItem>
+            <MenuItem
+              onClick={() => navigate(user.role === "admin" ? "/admin" : "/user")}
             >
-              <MenuItem onClick={() => navigate("/profile")}>
-                Profile
-              </MenuItem>
-              <MenuItem onClick={handleDashboard}>
-                Dashboard
-              </MenuItem>
-              <MenuItem onClick={handleLogout}>
-                Logout
-              </MenuItem>
-            </Menu>
-          </Box>
+              Dashboard
+            </MenuItem>
+            <MenuItem
+              onClick={() => {
+                logout();
+                navigate("/auth");
+              }}
+            >
+              Logout
+            </MenuItem>
+          </Menu>
         </Toolbar>
       </Container>
     </AppBar>
   );
 }
-
-export default ResponsiveAppBar;

@@ -1,10 +1,10 @@
 import ResponsiveAppBar from "../../components/ResponsiveAppBar";
 
-const AdminDashboard = () => (
-  <>
-    <ResponsiveAppBar />
-    <h2>Admin Dashboard</h2>
-  </>
-);
-
-export default AdminDashboard;
+export default function AdminDashboard() {
+  return (
+    <>
+      <ResponsiveAppBar />
+      <h2>Admin Dashboard</h2>
+    </>
+  );
+}
